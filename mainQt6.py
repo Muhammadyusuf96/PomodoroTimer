@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
-from PyQt6.QtCore import Qt, QTimer, QUrl
-from PyQt6.QtGui import QPixmap, QGuiApplication, QAction, QIcon
-from PyQt6.QtWidgets import QMainWindow, QMenu, QApplication, QWidget, QLabel, QMessageBox
-from PyQt6.QtMultimedia import QSoundEffect, QAudioOutput, QMediaPlayer
+from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtGui import QPixmap, QGuiApplication, QAction, QIcon
+from PySide6.QtWidgets import QMainWindow, QMenu, QApplication, QWidget, QLabel, QMessageBox
+from PySide6.QtMultimedia import QSoundEffect, QAudioOutput, QMediaPlayer
 
 
 class TomatoTimer(QWidget):
@@ -41,21 +41,18 @@ class TomatoTimer(QWidget):
         self.showImage(self.last_image)
 
         self.timer = QTimer()
-        self.timer.timeout.connect(self.countdown)
+        self.timer.timeout.connect(self.run)
 
-        
         self.player = QMediaPlayer()
         self.audioOutput = QAudioOutput()
         self.player.setAudioOutput(self.audioOutput)
         self.audioOutput.setVolume(self.volume)
-        
+
         self.center()
 
         self.oldPos = self.pos()
-        
-        self.show()
 
-    
+        self.show()
 
     def playSound(self, audioFile):
         self.player.setSource(QUrl.fromLocalFile(audioFile))
@@ -66,12 +63,14 @@ class TomatoTimer(QWidget):
             self.timer.stop()
             return
 
-        self.last_image -= 1
-        self.check()
-        self.updateImage()
+        self.countdown()
 
     def closeEvent(self, event):
-        reply = QMessageBox.question(self, self.windowTitle, "Are you sure to quit?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        reply = QMessageBox.question(
+            self, self.windowTitle,
+            "Are you sure to quit?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
 
         if reply == QMessageBox.StandardButton.Yes:
             event.accept()
@@ -104,7 +103,7 @@ class TomatoTimer(QWidget):
 
         if self.timer.isActive():
             startstopAct = cmenu.addAction("Stop")
-        else:            
+        else:
             startstopAct = cmenu.addAction("Start")
 
         aboutAct = cmenu.addAction("About")
@@ -118,11 +117,11 @@ class TomatoTimer(QWidget):
         elif action == aboutAct:
             self.showAbout()
 
-    def keyPressEvent(self, event):        
-        if event.key() == Qt.Key.Key_Q.value:
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Q:
             self.close()
-        elif event.key() == Qt.Key.Key_Return.value:
-            self.doAction()            
+        elif event.key() == Qt.Key.Key_Return:
+            self.doAction()
 
     def doAction(self):
         if self.timer.isActive():
@@ -130,17 +129,24 @@ class TomatoTimer(QWidget):
         else:
             self.timer.start(1000)
 
-    def countdown(self):
+    def run(self):
         if self.last_image > 0:
-            self.last_image -= 1
-            self.check()
-            self.updateImage()
+            self.countdown()
         else:
             self.timer.stop()
             self.playSound(self.alarmSound)
 
+    # TODO Rename this here and in `timerEvent` and `countdown`
+    def countdown(self):
+        self.last_image -= 1
+        self.check()
+        self.updateImage()
+
     def showAbout(self):
-       QMessageBox.information(self, self.windowTitle, 'Written by KMT\n\n\nnew line')
+        QMessageBox.information(
+            self,
+            self.windowTitle,
+            'Written by KMT\n\n\nnew line')
 
     def check(self):
         if self.last_image > 59:
@@ -150,7 +156,7 @@ class TomatoTimer(QWidget):
 
     def showImage(self, number):
         self.image = QPixmap(self.imageName(number))
-        
+
         self.label_image = QLabel(self)
         self.label_image.setPixmap(self.image)
         self.label_image.setGeometry(0, 0, self.image.width(), self.image.height())
@@ -166,7 +172,7 @@ class TomatoTimer(QWidget):
     def imageName(self, number):
         number = str(number)
         n = len(number)
-        return "images/{}.png".format('0' * (4 - n) + number)
+        return f"images/{'0' * (4 - n) + number}.png"
 
     def center(self):
         qr = self.frameGeometry()
@@ -174,7 +180,7 @@ class TomatoTimer(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = TomatoTimer()

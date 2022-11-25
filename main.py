@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.messagebox import askyesno, showinfo
 
+
 class Gui:
     def __init__(self, master):
         self.root = master
@@ -25,7 +26,9 @@ class Gui:
         self.root.bind('<Control-q>', self.quit_if)
         self.root.bind('<Button-1>', self.SaveLastClickPos)
         self.root.bind('<B1-Motion>', self.Dragging)
-        self.root.bind_all('<MouseWheel>', lambda event: self.on_scroll('scroll', int(-1*(event.delta/120)), 'units'))  #windows only
+        self.root.bind_all('<MouseWheel>', lambda event: self.on_scroll(
+            'scroll',
+            int(-1 * (event.delta / 120)), 'units'))  # windows only
 
     def timer(self, event=None):
         print(self.last_image)
@@ -34,7 +37,8 @@ class Gui:
             self.last_image -= 1
             self.check()
             self.update_image()
-            self.root.after(1000, self.timer)  # schedule next update 1 second later
+            # schedule next update 1 second later
+            self.root.after(1000, self.timer)
         else:
             self.timer_working = False
             print("Time is up!")
@@ -45,8 +49,9 @@ class Gui:
         self.lastClickY = event.y
 
     def Dragging(self, event):
-        x, y = event.x - self.lastClickX + self.root.winfo_x(), event.y - self.lastClickY + self.root.winfo_y()
-        self.root.geometry("+%s+%s" % (x , y))
+        x = event.x - self.lastClickX + self.root.winfo_x()
+        y = event.y - self.lastClickY + self.root.winfo_y()
+        self.root.geometry(f"+{x}+{y}")
 
     def on_scroll(self, *args):
         if not self.timer_working:
@@ -59,7 +64,7 @@ class Gui:
         # https://stackoverflow.com/questions/3482081/how-to-update-the-image-of-a-tkinter-label-widget
         self.root.image = tk.PhotoImage(file=self.image_name(self.last_image))
         self.label.configure(image=self.root.image)
-        #self.label.image = self.root.image
+        # self.label.image = self.root.image
 
     def check(self):
         if self.last_image > 59:
@@ -68,15 +73,15 @@ class Gui:
             self.last_image = self.last_image + 60
 
     def quit_if(self, event):
-        answer = askyesno(title='Confirmation',
-                    message='Are you sure that you want to quit?')
-        if answer:
+        if askyesno(title='Confirmation',
+                    message='Are you sure that you want to quit?'):
             self.root.destroy()
 
     def image_name(self, number):
         number = str(number)
         n = len(number)
-        return "images/{}.png".format('0' * (4 - n) + number)
+        return f"images/{'0' * (4 - n) + number}.png"
+
 
 if __name__ == "__main__":
     root = tk.Tk()
